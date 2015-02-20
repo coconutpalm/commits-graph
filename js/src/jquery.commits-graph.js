@@ -89,8 +89,8 @@
     function Commit(graph, idx, data, options) {
         this._data = data;
         this.graph = graph;
+        this.options = options;
         this.idx = idx;
-        this.options = options._data;
         this.sha = data[0];
         this.dot = data[1];
         this.dot_offset = this.dot[0];
@@ -100,23 +100,33 @@
         this.routes = $.map(data[2], function(e) { return new Route(self, e, options); });
     }
 
-    Commit.prototype.drawDot = function (ctx) {
-        var radius = this.options.dotRadius;    // dot radius
+    Commit.prototype.getDrawCoordinates = function() {
+        var width = this.options.get("width");
+        var scaleFactor = this.options.get("scaleFactor");
+        var x_step = this.options.get("x_step");
+        var y_step = this.options.get("y_step");
 
-        if (this.options.orientation === "horizontal") {
-            var x_hori = this.options.width * this.options.scaleFactor - (this.idx + 0.5) * this.options.x_step * this.options.scaleFactor;
-            var y_hori = (this.dot_offset + 1) * this.options.y_step * this.options.scaleFactor;
-            ctx.fillStyle = this.graph.get_color(this.dot_branch);
-            ctx.beginPath();
-            ctx.arc(x_hori, y_hori, radius * this.options.scaleFactor, 0, 2 * Math.PI, true);
+        var x, y;
+
+        if (this.options.get("orientation") === "horizontal") {
+            x = width * scaleFactor - (this.idx + 0.5) * x_step * scaleFactor;
+            y = (this.dot_offset + 1) * y_step * scaleFactor;
         } else {
-            var x = this.options.width * this.options.scaleFactor - (this.dot_offset + 1) * this.options.x_step * this.options.scaleFactor;
-            var y = (this.idx + 0.5) * this.options.y_step * this.options.scaleFactor;
-            ctx.fillStyle = this.graph.get_color(this.dot_branch);
-            ctx.beginPath();
-            ctx.arc(x, y, radius * this.options.scaleFactor, 0, 2 * Math.PI, true);
+            x = width * scaleFactor - (this.dot_offset + 1) * x_step * scaleFactor;
+            y = (this.idx + 0.5) * y_step * scaleFactor;
         }
-        // ctx.stroke();
+
+        return { "x": x, "y": y };
+    };
+
+    Commit.prototype.drawDot = function (ctx) {
+        var radius = this.options.get("dotRadius");
+        var scaleFactor = this.options.get("scaleFactor");
+        var dotCoords = this.getDrawCoordinates();
+
+        ctx.fillStyle = this.graph.get_color(this.dot_branch);
+        ctx.beginPath();
+        ctx.arc(dotCoords.x, dotCoords.y, radius * scaleFactor, 0, 2 * Math.PI, true);
         ctx.fill();
     };
 
