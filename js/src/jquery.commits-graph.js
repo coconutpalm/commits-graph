@@ -1,31 +1,26 @@
 "use strict";
 
-;( function ( $, window, undefined ) {
+;( function ($, window) {
 
 // -- Route --------------------------------------------------------
-
-    function Route( commit, data, options ) {
-        var self = this;
-
-        self._data = data;
-        self.commit = commit;
-        self.options = options;
-        self.from = data[0];
-        self.to = data[1];
-        self.branch = data[2];
+    function Route(commit, data, options) {
+        this._data = data;
+        this.commit = commit;
+        this.options = options;
+        this.from = data[0];
+        this.to = data[1];
+        this.branch = data[2];
     }
 
-    Route.prototype.drawRoute = function ( ctx ) {
-        var self = this;
+    Route.prototype.drawRoute = function (ctx) {
+        if (this.options.orientation === "horizontal") {
+            var from_x_hori = this.options.width * this.options.scaleFactor - (this.commit.idx + 0.5) * this.options.x_step * this.options.scaleFactor;
+            var from_y_hori = (this.from + 1) * this.options.y_step * this.options.scaleFactor;
 
-        if (self.options.orientation === "horizontal") {
-            var from_x_hori = self.options.width * self.options.scaleFactor - (self.commit.idx + 0.5) * self.options.x_step * self.options.scaleFactor;
-            var from_y_hori = (self.from + 1) * self.options.y_step * self.options.scaleFactor;
+            var to_x_hori = this.options.width * this.options.scaleFactor - (this.commit.idx + 0.5 + 1) * this.options.x_step * this.options.scaleFactor;
+            var to_y_hori = (this.to + 1) * this.options.y_step * this.options.scaleFactor;
 
-            var to_x_hori = self.options.width * self.options.scaleFactor - (self.commit.idx + 0.5 + 1) * self.options.x_step * self.options.scaleFactor;
-            var to_y_hori = (self.to + 1) * self.options.y_step * self.options.scaleFactor;
-
-            ctx.strokeStyle = self.commit.graph.get_color(self.branch);
+            ctx.strokeStyle = this.commit.graph.get_color(this.branch);
             ctx.beginPath();
             ctx.moveTo(from_x_hori, from_y_hori);
 
@@ -33,29 +28,29 @@
               ctx.lineTo(to_x_hori, to_y_hori);
             } else if (from_y_hori > to_y_hori) {
                 ctx.bezierCurveTo(
-                    from_x_hori - self.options.x_step * self.options.scaleFactor / 3 * 2,
-                    from_y_hori + self.options.y_step * self.options.scaleFactor / 4,
-                    to_x_hori + self.options.x_step * self.options.scaleFactor / 3 * 2,
-                    to_y_hori - self.options.y_step * self.options.scaleFactor / 4,
+                    from_x_hori - this.options.x_step * this.options.scaleFactor / 3 * 2,
+                    from_y_hori + this.options.y_step * this.options.scaleFactor / 4,
+                    to_x_hori + this.options.x_step * this.options.scaleFactor / 3 * 2,
+                    to_y_hori - this.options.y_step * this.options.scaleFactor / 4,
                     to_x_hori, to_y_hori
                 );
             } else if (from_y_hori < to_y_hori) {
                 ctx.bezierCurveTo(
-                    from_x_hori - self.options.x_step * self.options.scaleFactor / 3 * 2,
-                    from_y_hori - self.options.y_step * self.options.scaleFactor / 4,
-                    to_x_hori + self.options.x_step * self.options.scaleFactor / 3 * 2,
-                    to_y_hori + self.options.y_step * self.options.scaleFactor / 4,
+                    from_x_hori - this.options.x_step * this.options.scaleFactor / 3 * 2,
+                    from_y_hori - this.options.y_step * this.options.scaleFactor / 4,
+                    to_x_hori + this.options.x_step * this.options.scaleFactor / 3 * 2,
+                    to_y_hori + this.options.y_step * this.options.scaleFactor / 4,
                     to_x_hori, to_y_hori
                 );
             }
         } else {
-            var from_x = self.options.width * self.options.scaleFactor - (self.from + 1) * self.options.x_step * self.options.scaleFactor;
-            var from_y = (self.commit.idx + 0.5) * self.options.y_step * self.options.scaleFactor;
+            var from_x = this.options.width * this.options.scaleFactor - (this.from + 1) * this.options.x_step * this.options.scaleFactor;
+            var from_y = (this.commit.idx + 0.5) * this.options.y_step * this.options.scaleFactor;
 
-            var to_x = self.options.width * self.options.scaleFactor - (self.to + 1) * self.options.x_step * self.options.scaleFactor;
-            var to_y = (self.commit.idx + 0.5 + 1) * self.options.y_step * self.options.scaleFactor;
+            var to_x = this.options.width * this.options.scaleFactor - (this.to + 1) * this.options.x_step * this.options.scaleFactor;
+            var to_y = (this.commit.idx + 0.5 + 1) * this.options.y_step * this.options.scaleFactor;
 
-            ctx.strokeStyle = self.commit.graph.get_color(self.branch);
+            ctx.strokeStyle = this.commit.graph.get_color(this.branch);
             ctx.beginPath();
             ctx.moveTo(from_x, from_y);
 
@@ -63,10 +58,10 @@
               ctx.lineTo(to_x, to_y);
             } else {
                 ctx.bezierCurveTo(
-                    from_x - self.options.x_step * self.options.scaleFactor / 4,
-                    from_y + self.options.y_step * self.options.scaleFactor / 3 * 2,
-                    to_x + self.options.x_step * self.options.scaleFactor / 4,
-                    to_y - self.options.y_step * self.options.scaleFactor / 3 * 2,
+                    from_x - this.options.x_step * this.options.scaleFactor / 4,
+                    from_y + this.options.y_step * this.options.scaleFactor / 3 * 2,
+                    to_x + this.options.x_step * this.options.scaleFactor / 4,
+                    to_y - this.options.y_step * this.options.scaleFactor / 3 * 2,
                     to_x, to_y
                 );
             }
@@ -76,37 +71,35 @@
     };
 
 // -- Commit Node --------------------------------------------------------
+    function Commit(graph, idx, data, options) {
+        this._data = data;
+        this.graph = graph;
+        this.idx = idx;
+        this.options = options;
+        this.sha = data[0];
+        this.dot = data[1];
+        this.dot_offset = this.dot[0];
+        this.dot_branch = this.dot[1];
 
-    function Commit(graph, idx, data, options ) {
         var self = this;
-
-        self._data = data;
-        self.graph = graph;
-        self.idx = idx;
-        self.options = options;
-        self.sha = data[0];
-        self.dot = data[1];
-        self.dot_offset = self.dot[0];
-        self.dot_branch = self.dot[1];
-        self.routes = $.map(data[2], function(e) { return new Route(self, e, options); });
+        this.routes = $.map(data[2], function(e) { return new Route(self, e, options); });
     }
 
-    Commit.prototype.drawDot = function ( ctx ) {
-        var self = this;
-        var radius = self.options.dotRadius;    // dot radius
+    Commit.prototype.drawDot = function (ctx) {
+        var radius = this.options.dotRadius;    // dot radius
 
-        if (self.options.orientation === "horizontal") {
-            var x_hori = self.options.width * self.options.scaleFactor - (self.idx + 0.5) * self.options.x_step * self.options.scaleFactor;
-            var y_hori = (self.dot_offset + 1) * self.options.y_step * self.options.scaleFactor;
-            ctx.fillStyle = self.graph.get_color(self.dot_branch);
+        if (this.options.orientation === "horizontal") {
+            var x_hori = this.options.width * this.options.scaleFactor - (this.idx + 0.5) * this.options.x_step * this.options.scaleFactor;
+            var y_hori = (this.dot_offset + 1) * this.options.y_step * this.options.scaleFactor;
+            ctx.fillStyle = this.graph.get_color(this.dot_branch);
             ctx.beginPath();
-            ctx.arc(x_hori, y_hori, radius * self.options.scaleFactor, 0, 2 * Math.PI, true);
+            ctx.arc(x_hori, y_hori, radius * this.options.scaleFactor, 0, 2 * Math.PI, true);
         } else {
-            var x = self.options.width * self.options.scaleFactor - (self.dot_offset + 1) * self.options.x_step * self.options.scaleFactor;
-            var y = (self.idx + 0.5) * self.options.y_step * self.options.scaleFactor;
-            ctx.fillStyle = self.graph.get_color(self.dot_branch);
+            var x = this.options.width * this.options.scaleFactor - (this.dot_offset + 1) * this.options.x_step * this.options.scaleFactor;
+            var y = (this.idx + 0.5) * this.options.y_step * this.options.scaleFactor;
+            ctx.fillStyle = this.graph.get_color(this.dot_branch);
             ctx.beginPath();
-            ctx.arc(x, y, radius * self.options.scaleFactor, 0, 2 * Math.PI, true);
+            ctx.arc(x, y, radius * this.options.scaleFactor, 0, 2 * Math.PI, true);
         }
         // ctx.stroke();
         ctx.fill();
@@ -123,37 +116,35 @@
         return 1;
     }
 
-    function GraphCanvas( data, options ) {
-        var self = this;
-
-        self.data = data;
-        self.options = options;
-        self.canvas = document.createElement("canvas");
-        self.canvas.style.height = options.height + "px";
-        self.canvas.style.width = options.width + "px";
-        self.canvas.height = options.height;
-        self.canvas.width = options.width;
+    function GraphCanvas(data, options) {
+        this.data = data;
+        this.options = options;
+        this.canvas = document.createElement("canvas");
+        this.canvas.style.height = options.height + "px";
+        this.canvas.style.width = options.width + "px";
+        this.canvas.height = options.height;
+        this.canvas.width = options.width;
 
         var scaleFactor = backingScale();
-        if (self.options.orientation === "horizontal") {
+        if (this.options.orientation === "horizontal") {
             if (scaleFactor < 1) {
-                self.canvas.width = self.canvas.width * scaleFactor;
-                self.canvas.height = self.canvas.height * scaleFactor;
+                this.canvas.width = this.canvas.width * scaleFactor;
+                this.canvas.height = this.canvas.height * scaleFactor;
             }
         } else {
             if (scaleFactor > 1) {
-                self.canvas.width = self.canvas.width * scaleFactor;
-                self.canvas.height = self.canvas.height * scaleFactor;
+                this.canvas.width = this.canvas.width * scaleFactor;
+                this.canvas.height = this.canvas.height * scaleFactor;
             }
         }
 
-        self.options.scaleFactor = scaleFactor;
+        this.options.scaleFactor = scaleFactor;
 
         // or use context.scale(2,2) // not tested
 
-        self.colors = [
+        this.colors = [
             "#e11d21",
-            //"#eb6420",
+            "#eb6420",
             "#fbca04",
             "#009800",
             "#006b75",
@@ -174,22 +165,17 @@
             "#ffffff",
             "#cc317c"
         ];
-        // self.branch_color = {};
     }
 
     GraphCanvas.prototype.toHTML = function () {
-        var self = this;
+        this.draw();
 
-        self.draw();
-
-        return $(self.canvas);
+        return $(this.canvas);
     };
 
     GraphCanvas.prototype.get_color = function (branch) {
-        var self = this;
-
-        var n = self.colors.length;
-        return self.colors[branch % n];
+        var n = this.colors.length;
+        return this.colors[branch % n];
     };
 
 /*
@@ -208,29 +194,41 @@
 
     // draw
     GraphCanvas.prototype.draw = function () {
-        var self = this;
-        var ctx = self.canvas.getContext("2d");
+        var ctx = this.canvas.getContext("2d");
 
-        ctx.lineWidth = self.options.lineWidth;
-        console.log(self.data);
+        ctx.lineWidth = this.options.lineWidth;
 
-        var n_commits = self.data.length;
-        for (var i=0; i<n_commits; i++) {
-            var commit = new Commit(self, i, self.data[i], self.options);
+        var n_commits = this.data.length;
 
-            commit.drawDot(ctx);
-            for (var j=0; j<commit.routes.length; j++) {
+        //build commits array
+        var commits = [];
+
+        for (var i = 0; i < n_commits; i += 1) {
+            commits.push(new Commit(this, i, this.data[i], this.options));
+        }
+
+        var commit;
+
+        // draw only lines
+        for (i = 0; i < n_commits; i += 1) {
+            commit = commits[i];
+            for (var j = 0; j < commit.routes.length; j +=1 ) {
                 var route = commit.routes[j];
                 route.drawRoute(ctx);
             }
+        }
+
+        // drow dots over lines
+        for (i = 0; i < n_commits; i += 1) {
+            commits[i].drawDot(ctx);
         }
     };
 
 // -- Function for finding the total number of branches -----------------------
     var branchCount = function(data) {
         var maxBranch = -1;
-        for (var i = 0; i < data.length; i++) {
-            for (var j = 0; j < data[i][2].length; j++) {
+        for (var i = 0; i < data.length; i += 1) {
+            for (var j = 0; j < data[i][2].length; j += 1) {
                 if (maxBranch < data[i][2][j][0] || maxBranch < data[i][2][j][1]) {
                     maxBranch = Math.max.apply(Math, [data[i][2][j][0], data[i][2][j][1]]);
                 }
@@ -241,8 +239,7 @@
 
 // -- Graph Plugin ------------------------------------------------------------
 
-    function Graph( element, options ) {
-        var self = this;
+    function Graph(element, options) {
         var defaults = {
             height: 800,
             width: 200,
@@ -253,44 +250,43 @@
             lineWidth: 2,
         };
 
-        self.element    = element;
-        self.$container = $( element );
-        self.data = self.$container.data( "graph" );
+        this.element = element;
+        this.$container = $(element);
+        this.data = this.$container.data("graph");
 
-        var x_step = $.extend( {}, defaults, options ).x_step;
-        var y_step = $.extend( {}, defaults, options ).y_step;
+        var x_step = $.extend({}, defaults, options).x_step;
+        var y_step = $.extend({}, defaults, options).y_step;
 
         if (options.orientation === "horizontal") {
-            defaults.width = ( self.data.length + 2 ) * x_step;
-            defaults.height = ( branchCount(self.data) + 0.5 ) * y_step;
+            defaults.width = (this.data.length + 2) * x_step;
+            defaults.height = (branchCount(this.data) + 0.5) * y_step;
         } else {
-            defaults.width = ( branchCount(self.data) + 0.5 ) * x_step;
-            defaults.height = ( self.data.length + 2 ) * y_step;
+            defaults.width = (branchCount(this.data) + 0.5) * x_step;
+            defaults.height = (this.data.length + 2) * y_step;
         }
 
-        self.options = $.extend( {}, defaults, options ) ;
+        this.options = $.extend({}, defaults, options) ;
 
-        self._defaults = defaults;
+        this._defaults = defaults;
 
-        self.applyTemplate();
+        this.applyTemplate();
     }
 
     // Apply results to HTML template
     Graph.prototype.applyTemplate = function () {
-        var self  = this;
-        var graphCanvas = new GraphCanvas( self.data, self.options );
+        var graphCanvas = new GraphCanvas(this.data, this.options);
         var $canvas = graphCanvas.toHTML();
 
-        $canvas.appendTo( self.$container );
+        $canvas.appendTo(this.$container);
     };
 
     // -- Attach plugin to jQuery's prototype --------------------------------------
-    $.fn.commits = function ( options ) {
+    $.fn.commits = function (options) {
         return this.each(function () {
-            if ( !$( this ).data( "plugin_commits_graph" ) ) {
-                $( this ).data( "plugin_commits_graph", new Graph( this, options ) );
+            if (!$(this).data("plugin_commits_graph")) {
+                $(this).data("plugin_commits_graph", new Graph(this, options));
             }
         });
     };
 
-}( window.jQuery, window ) );
+}(window.jQuery, window));
