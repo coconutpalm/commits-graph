@@ -1,12 +1,27 @@
 "use strict";
 
+/*
+
+[
+  sha,
+  [offset, branch], //dot
+  [
+    [from, to, branch],  // route1
+    [from, to, branch],  // route2
+    [from, to, branch],
+  ]  // routes
+],
+
+*/
+
+
 ;( function ($, window) {
 
 // -- Route --------------------------------------------------------
     function Route(commit, data, options) {
         this._data = data;
         this.commit = commit;
-        this.options = options;
+        this.options = options._data;
         this.from = data[0];
         this.to = data[1];
         this.branch = data[2];
@@ -75,7 +90,7 @@
         this._data = data;
         this.graph = graph;
         this.idx = idx;
-        this.options = options;
+        this.options = options._data;
         this.sha = data[0];
         this.dot = data[1];
         this.dot_offset = this.dot[0];
@@ -131,32 +146,14 @@
     }
 
     function GraphCanvas(data, options) {
-        options.adjustSize(data.length, branchCount(data));
 
         this.data = data;
-        this.options = options._data;
+        this.options = options;
         this.canvas = document.createElement("canvas");
-        this.canvas.style.height = this.options.height + "px";
-        this.canvas.style.width = this.options.width + "px";
-        this.canvas.height = this.options.height;
-        this.canvas.width = this.options.width;
 
-        var scaleFactor = backingScale();
-        if (this.options.orientation === "horizontal") {
-            if (scaleFactor < 1) {
-                this.canvas.width = this.canvas.width * scaleFactor;
-                this.canvas.height = this.canvas.height * scaleFactor;
-            }
-        } else {
-            if (scaleFactor > 1) {
-                this.canvas.width = this.canvas.width * scaleFactor;
-                this.canvas.height = this.canvas.height * scaleFactor;
-            }
+        if (this.options.get("autoSizeAdjustment") === true) {
+            this.adjustSizeToContent(data);
         }
-
-        this.options.scaleFactor = scaleFactor;
-
-        // or use context.scale(2,2) // not tested
 
         this.colors = [
             "#e11d21",
@@ -183,6 +180,35 @@
         ];
     }
 
+    GraphCanvas.prototype.adjustSizeToContent = function (data) {
+        var scaleFactor = backingScale();
+
+        var additionalLength = 1;
+        var additionalWidth = 0.5;
+
+        var newWidth, newHeight;
+
+        var longerSide = data.length + additionalLength;
+        var shorterSide = branchCount(data) + additionalWidth;
+
+        if (this.options.get("orientation") === "horizontal") {
+            newWidth = longerSide * this.options.get("x_step") * scaleFactor;
+            newHeight = shorterSide * this.options.get("y_step") * scaleFactor;
+        } else {
+            newWidth = shorterSide * this.options.get("x_step") * scaleFactor;
+            newHeight = longerSide * this.options.get("y_step") * scaleFactor;
+        }
+
+        this.options.setWidth(newWidth)
+                    .setHeight(newHeight)
+                    .setScaleFactor(scaleFactor);
+
+        this.canvas.style.height = newHeight + "px";
+        this.canvas.style.width = newWidth + "px";
+        this.canvas.height = newHeight;
+        this.canvas.width = newWidth;
+    };
+
     GraphCanvas.prototype.toHTML = function () {
         this.draw();
 
@@ -194,25 +220,11 @@
         return this.colors[branch % n];
     };
 
-/*
-
-[
-  sha,
-  [offset, branch], //dot
-  [
-    [from, to, branch],  // route1
-    [from, to, branch],  // route2
-    [from, to, branch],
-  ]  // routes
-],
-
-*/
-
     // draw
     GraphCanvas.prototype.draw = function () {
         var ctx = this.canvas.getContext("2d");
 
-        ctx.lineWidth = this.options.lineWidth;
+        ctx.lineWidth = this.options.get("lineWidth");
 
         var n_commits = this.data.length;
 
@@ -247,7 +259,6 @@
         this.options = options;
     }
 
-    // Apply results to HTML template
     Graph.prototype.applyOn = function (container) {
         var graphCanvas = new GraphCanvas(this.data, this.options);
         var $canvas = graphCanvas.toHTML();
@@ -287,25 +298,9 @@
         return this;
     };
 
-    Options.prototype.adjustSize = function (commitsCount, branchesCount) {
-        var additionalLength = 1;
-        var additionalWidth = 0.5;
-
-        var newWidth, newHeight;
-
-        var longerSide = commitsCount + additionalLength;
-        var shorterSide = branchesCount + additionalWidth;
-
-        if (this.get("orientation") === "horizontal") {
-            newWidth = longerSide * this.get("x_step");
-            newHeight = shorterSide * this.get("y_step");
-        } else {
-            newWidth = shorterSide * this.get("x_step");
-            newHeight = longerSide * this.get("y_step");
-        }
-
-        this.setWidth(newWidth)
-            .setHeight(newHeight);
+    Options.prototype.setScaleFactor = function (value) {
+        this._data.scaleFactor = value;
+        return this;
     };
 
 // -- Attach plugin to jQuery's prototype --------------------------------------
