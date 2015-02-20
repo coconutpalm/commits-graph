@@ -105,6 +105,20 @@
         ctx.fill();
     };
 
+// -- Function for finding the total number of branches -----------------------
+    var branchCount = function(data) {
+        var maxBranch = -1;
+        for (var i = 0; i < data.length; i += 1) {
+            for (var j = 0; j < data[i][2].length; j += 1) {
+                if (maxBranch < data[i][2][j][0] || maxBranch < data[i][2][j][1]) {
+                    maxBranch = Math.max.apply(Math, [data[i][2][j][0], data[i][2][j][1]]);
+                }
+            }
+        }
+        return maxBranch + 1;
+    };
+
+
 // -- Graph Canvas --------------------------------------------------------
 
     function backingScale() {
@@ -117,13 +131,15 @@
     }
 
     function GraphCanvas(data, options) {
+        options.adjustSize(data.length, branchCount(data));
+
         this.data = data;
-        this.options = options;
+        this.options = options._data;
         this.canvas = document.createElement("canvas");
-        this.canvas.style.height = options.height + "px";
-        this.canvas.style.width = options.width + "px";
-        this.canvas.height = options.height;
-        this.canvas.width = options.width;
+        this.canvas.style.height = this.options.height + "px";
+        this.canvas.style.width = this.options.width + "px";
+        this.canvas.height = this.options.height;
+        this.canvas.width = this.options.width;
 
         var scaleFactor = backingScale();
         if (this.options.orientation === "horizontal") {
@@ -224,23 +240,25 @@
         }
     };
 
-// -- Function for finding the total number of branches -----------------------
-    var branchCount = function(data) {
-        var maxBranch = -1;
-        for (var i = 0; i < data.length; i += 1) {
-            for (var j = 0; j < data[i][2].length; j += 1) {
-                if (maxBranch < data[i][2][j][0] || maxBranch < data[i][2][j][1]) {
-                    maxBranch = Math.max.apply(Math, [data[i][2][j][0], data[i][2][j][1]]);
-                }
-            }
-        }
-        return maxBranch + 1;
-    };
-
 // -- Graph Plugin ------------------------------------------------------------
 
-    function Graph(element, options) {
-        var defaults = {
+    function Graph(data, options) {
+        this.data = data;
+        this.options = options;
+    }
+
+    // Apply results to HTML template
+    Graph.prototype.applyOn = function (container) {
+        var graphCanvas = new GraphCanvas(this.data, this.options);
+        var $canvas = graphCanvas.toHTML();
+
+        $canvas.appendTo(container);
+    };
+
+// -- Options
+    function Options(options) {
+        this._defaults = {
+            autoSizeAdjustment: true,
             height: 800,
             width: 200,
             y_step: 20,
@@ -250,41 +268,58 @@
             lineWidth: 2,
         };
 
-        this.element = element;
-        this.$container = $(element);
-        this.data = this.$container.data("graph");
+        this._data = this._defaults;
 
-        var x_step = $.extend({}, defaults, options).x_step;
-        var y_step = $.extend({}, defaults, options).y_step;
-
-        if (options.orientation === "horizontal") {
-            defaults.width = (this.data.length + 2) * x_step;
-            defaults.height = (branchCount(this.data) + 0.5) * y_step;
-        } else {
-            defaults.width = (branchCount(this.data) + 0.5) * x_step;
-            defaults.height = (this.data.length + 2) * y_step;
-        }
-
-        this.options = $.extend({}, defaults, options) ;
-
-        this._defaults = defaults;
-
-        this.applyTemplate();
+        $.extend(this._data, options);
     }
 
-    // Apply results to HTML template
-    Graph.prototype.applyTemplate = function () {
-        var graphCanvas = new GraphCanvas(this.data, this.options);
-        var $canvas = graphCanvas.toHTML();
-
-        $canvas.appendTo(this.$container);
+    Options.prototype.get = function (name) {
+        return this._data[name];
     };
 
-    // -- Attach plugin to jQuery's prototype --------------------------------------
-    $.fn.commits = function (options) {
+    Options.prototype.setWidth = function (value) {
+        this._data.width = value;
+        return this;
+    };
+
+    Options.prototype.setHeight = function (value) {
+        this._data.height = value;
+        return this;
+    };
+
+    Options.prototype.adjustSize = function (commitsCount, branchesCount) {
+        var additionalLength = 1;
+        var additionalWidth = 0.5;
+
+        var newWidth, newHeight;
+
+        var longerSide = commitsCount + additionalLength;
+        var shorterSide = branchesCount + additionalWidth;
+
+        if (this.get("orientation") === "horizontal") {
+            newWidth = longerSide * this.get("x_step");
+            newHeight = shorterSide * this.get("y_step");
+        } else {
+            newWidth = shorterSide * this.get("x_step");
+            newHeight = longerSide * this.get("y_step");
+        }
+
+        this.setWidth(newWidth)
+            .setHeight(newHeight);
+    };
+
+// -- Attach plugin to jQuery's prototype --------------------------------------
+    $.fn.commits = function (config) {
         return this.each(function () {
             if (!$(this).data("plugin_commits_graph")) {
-                $(this).data("plugin_commits_graph", new Graph(this, options));
+
+                this.$container = $(this);
+
+                var data = this.$container.data("graph");
+                var options = new Options(config);
+                var graph = new Graph(data, options).applyOn(this.$container);
+
+                $(this).data("plugin_commits_graph", graph);
             }
         });
     };
