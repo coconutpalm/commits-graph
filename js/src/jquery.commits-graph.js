@@ -21,62 +21,68 @@
     function Route(commit, data, options) {
         this._data = data;
         this.commit = commit;
-        this.options = options._data;
+        this.options = options;
         this.from = data[0];
         this.to = data[1];
         this.branch = data[2];
     }
 
     Route.prototype.drawRoute = function (ctx) {
-        if (this.options.orientation === "horizontal") {
-            var from_x_hori = this.options.width * this.options.scaleFactor - (this.commit.idx + 0.5) * this.options.x_step * this.options.scaleFactor;
-            var from_y_hori = (this.from + 1) * this.options.y_step * this.options.scaleFactor;
+        var width = this.options.get("width");
+        var scaleFactor = this.options.get("scaleFactor");
+        var x_step = this.options.get("x_step");
+        var y_step = this.options.get("y_step");
+        var commit_idx = this.commit.idx;
 
-            var to_x_hori = this.options.width * this.options.scaleFactor - (this.commit.idx + 0.5 + 1) * this.options.x_step * this.options.scaleFactor;
-            var to_y_hori = (this.to + 1) * this.options.y_step * this.options.scaleFactor;
+        if (this.options.get("orientation") === "horizontal") {
+            var from_x_hori = width * scaleFactor - (commit_idx + 0.5) * x_step * scaleFactor;
+            var from_y_hori = (this.from + 1) * y_step * scaleFactor;
+
+            var to_x_hori = width * scaleFactor - (commit_idx + 0.5 + 1) * x_step * scaleFactor;
+            var to_y_hori = (this.to + 1) * y_step * scaleFactor;
 
             ctx.strokeStyle = this.commit.graph.get_color(this.branch);
             ctx.beginPath();
             ctx.moveTo(from_x_hori, from_y_hori);
 
             if (from_y_hori === to_y_hori) {
-              ctx.lineTo(to_x_hori, to_y_hori);
+                ctx.lineTo(to_x_hori, to_y_hori);
             } else if (from_y_hori > to_y_hori) {
                 ctx.bezierCurveTo(
-                    from_x_hori - this.options.x_step * this.options.scaleFactor / 3 * 2,
-                    from_y_hori + this.options.y_step * this.options.scaleFactor / 4,
-                    to_x_hori + this.options.x_step * this.options.scaleFactor / 3 * 2,
-                    to_y_hori - this.options.y_step * this.options.scaleFactor / 4,
+                    from_x_hori - x_step * scaleFactor / 3 * 2,
+                    from_y_hori + y_step * scaleFactor / 4,
+                    to_x_hori + x_step * scaleFactor / 3 * 2,
+                    to_y_hori - y_step * scaleFactor / 4,
                     to_x_hori, to_y_hori
                 );
             } else if (from_y_hori < to_y_hori) {
                 ctx.bezierCurveTo(
-                    from_x_hori - this.options.x_step * this.options.scaleFactor / 3 * 2,
-                    from_y_hori - this.options.y_step * this.options.scaleFactor / 4,
-                    to_x_hori + this.options.x_step * this.options.scaleFactor / 3 * 2,
-                    to_y_hori + this.options.y_step * this.options.scaleFactor / 4,
+                    from_x_hori - x_step * scaleFactor / 3 * 2,
+                    from_y_hori - y_step * scaleFactor / 4,
+                    to_x_hori + x_step * scaleFactor / 3 * 2,
+                    to_y_hori + y_step * scaleFactor / 4,
                     to_x_hori, to_y_hori
                 );
             }
         } else {
-            var from_x = this.options.width * this.options.scaleFactor - (this.from + 1) * this.options.x_step * this.options.scaleFactor;
-            var from_y = (this.commit.idx + 0.5) * this.options.y_step * this.options.scaleFactor;
+            var from_x = width * scaleFactor - (this.from + 1) * x_step * scaleFactor;
+            var from_y = (commit_idx + 0.5) * y_step * scaleFactor;
 
-            var to_x = this.options.width * this.options.scaleFactor - (this.to + 1) * this.options.x_step * this.options.scaleFactor;
-            var to_y = (this.commit.idx + 0.5 + 1) * this.options.y_step * this.options.scaleFactor;
+            var to_x = width * scaleFactor - (this.to + 1) * x_step * scaleFactor;
+            var to_y = (commit_idx + 0.5 + 1) * y_step * scaleFactor;
 
             ctx.strokeStyle = this.commit.graph.get_color(this.branch);
             ctx.beginPath();
             ctx.moveTo(from_x, from_y);
 
             if (from_x === to_x) {
-              ctx.lineTo(to_x, to_y);
+                ctx.lineTo(to_x, to_y);
             } else {
                 ctx.bezierCurveTo(
-                    from_x - this.options.x_step * this.options.scaleFactor / 4,
-                    from_y + this.options.y_step * this.options.scaleFactor / 3 * 2,
-                    to_x + this.options.x_step * this.options.scaleFactor / 4,
-                    to_y - this.options.y_step * this.options.scaleFactor / 3 * 2,
+                    from_x - x_step * scaleFactor / 4,
+                    from_y + y_step * scaleFactor / 3 * 2,
+                    to_x + x_step * scaleFactor / 4,
+                    to_y - y_step * scaleFactor / 3 * 2,
                     to_x, to_y
                 );
             }
